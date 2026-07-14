@@ -85,7 +85,7 @@ app.get("/stats", (req, res) => {
 
     res.json({
         one: calculate(1),
-        three: calculate
+        three: calculate (1),
         five: calculate(5),
         ten: calculate(10)
     });
