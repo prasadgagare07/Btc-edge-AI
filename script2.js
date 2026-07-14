@@ -1,64 +1,65 @@
-function formatMoney(value) {
-    return "$" + value.toLocaleString(undefined, {
-        maximumFractionDigits: 0
-    });
-}
+const API = "https://btc-edge-ai-1.onrender.com/stats";
 
-function updateStats(minutes) {
+async function loadStats() {
+    try {
 
-    const now = Date.now();
-    const start = now - (minutes * 60 * 1000);
+        const res = await fetch(API);
+        const data = await res.json();
 
-    const list = trades.filter(t => t.time >= start);
+        updateCard(1, data.one);
+        updateCard(3, data.three);
+        updateCard(5, data.five);
+        updateCard(10, data.ten);
 
-    let buyVolume = 0;
-    let sellVolume = 0;
+        updatePrediction(1, data.one);
+        updatePrediction(3, data.three);
+        updatePrediction(5, data.five);
+        updatePrediction(10, data.ten);
 
-    list.forEach(t => {
-        if (t.sell) {
-            sellVolume += t.usd;
-        } else {
-            buyVolume += t.usd;
-        }
-    });
-
-    const total = buyVolume + sellVolume;
-    const delta = buyVolume - sellVolume;
-
-    const buyPercent = total ? (buyVolume / total) * 100 : 0;
-    const sellPercent = total ? (sellVolume / total) * 100 : 0;
-
-    document.getElementById("buy" + minutes).textContent =
-        formatMoney(buyVolume);
-
-    document.getElementById("sell" + minutes).textContent =
-        formatMoney(sellVolume);
-
-    const deltaElement =
-        document.getElementById("delta" + minutes);
-
-    deltaElement.textContent = formatMoney(delta);
-
-    if (delta > 0) {
-        deltaElement.style.color = "#00ff66";
-    } else if (delta < 0) {
-        deltaElement.style.color = "#ff3b3b";
-    } else {
-        deltaElement.style.color = "#ffffff";
+    } catch (e) {
+        console.log(e);
     }
-
-    document.getElementById("buyPercent" + minutes).textContent =
-        buyPercent.toFixed(1) + "%";
-
-    document.getElementById("sellPercent" + minutes).textContent =
-        sellPercent.toFixed(1) + "%";
 }
 
-setInterval(() => {
+function updateCard(min, d) {
 
-    updateStats(1);
-    updateStats(3);
-    updateStats(5);
-    updateStats(10);
+    document.getElementById("buy" + min).innerHTML =
+        "$" + Math.round(d.buyVolume).toLocaleString();
 
-}, 1000);
+    document.getElementById("sell" + min).innerHTML =
+        "$" + Math.round(d.sellVolume).toLocaleString();
+
+    const delta = document.getElementById("delta" + min);
+
+    delta.innerHTML =
+        "$" + Math.round(d.delta).toLocaleString();
+
+    delta.style.color =
+        d.delta >= 0 ? "#00ff66" : "#ff3b3b";
+
+    document.getElementById("buyPercent" + min).innerHTML =
+        d.buyPercent.toFixed(1) + "%";
+
+    document.getElementById("sellPercent" + min).innerHTML =
+        d.sellPercent.toFixed(1) + "%";
+}
+
+function updatePrediction(min, d) {
+
+    const id = document.getElementById("prediction" + min);
+
+    if (!id) return;
+
+    if (d.buyPercent > 60)
+        id.innerHTML = "🟢 BUY";
+
+    else if (d.sellPercent > 60)
+        id.innerHTML = "🔴 SELL";
+
+    else
+        id.innerHTML = "🟡 WAIT";
+}
+
+loadStats();
+
+setInterval(loadStats, 1000);
