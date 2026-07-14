@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: btc-edge-ai
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
