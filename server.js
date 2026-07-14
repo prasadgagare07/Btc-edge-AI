@@ -86,3 +86,12 @@ app.get("/stats", (req, res) => {
     res.json({
         one: calculate(1),
         three: calculate
+        five: calculate(5),
+        ten: calculate(10)
+    });
+
+});
+
+app.listen(process.env.PORT || 3000, () => {
+    console.log("Server running...");
+});
